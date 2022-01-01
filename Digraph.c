@@ -10,14 +10,14 @@
 #include <limits.h>
 
 // this is the node struct
-
-
+pnode push_if_null(pnode head, int data,int weight);
+pnode copy( pnode node_to_cop);
 pnode pop ( pnode head);
 int isEmpty (pnode *head);
-pnode push(pnode head, int data);
+pnode push(pnode head, int data, int w);
 int peek(pnode *head);
 int contain (int elem, int arr []);
-static char How_Much_Nodes;
+static int How_Much_Nodes;
 pnode change_place(pnode head);
 
 node* newNode( int data){
@@ -201,63 +201,65 @@ void shortsPath_cmd(pnode head){
     int src_id;
     int dest_id;
     int path_weight;
-    pnode *helper= head;
+    pnode helper= head;
     pnode temp =head;
     pnode pq;
     int i =0;
     int there_is_path;
     int visit[How_Much_Nodes];
-    for (int j = 0; j < How_Much_Nodes; ++j) {
+    for (int j = 0; j < How_Much_Nodes; ++j) {    //initialize an array to -1 , it will help me to se if I visit node
         visit[j]=-1;
     }
     scanf("%d",&src_id);
     scanf("%d",&dest_id);
-    while(temp){
+    while(temp){   // updating all node "weights" to inf
         temp->node_weight=INT_MAX;
         temp = temp->next;
     }
-
     pnode src_node;// find_node(src_id,helper);
-    src_node = find_node(src_id,helper);
-    src_node->node_weight=0;
-    pq = newNode(src_id);
-    while (!isEmpty(pq)){
-        if(peek(pq)== dest_id){
+    helper = find_node(src_id,head);   // always the helper and src node have connection, in aim to run on all the
+    helper->node_weight=0;                  // edges of each node
+    src_node = copy(helper);     // creating a copy in aim that my data wont be lost
+    src_node->node_weight=0;                // first node weight is 0
+    pq = newNode(src_id);              // my priority queue
+    while (!isEmpty(pq)){             // run until my queue is not empty
+        if(i > 0) {                        // dont want it get in the first time
+            helper = find_node(pq->node_num, head);   // taking the first in queue
+            src_node = copy(helper);            // copy again
+        }
+        if(peek(pq)== dest_id){      // condition to stop if i reach the dest node
             there_is_path=1;
             break;
         }
-        int nodeId= peek(pq);
+        int nodeId= peek(pq);   // always add the first node we pop from the queue to the visit array
         pq=pop(pq);
         visit[i]=nodeId;
         i++;
-        while(src_node && src_node->edges){
-            int weight= src_node->edges->weight;
-            if(!contain(src_node->edges->endpoint->node_num,visit)){
-                int old_cost= src_node->edges->endpoint->node_weight;
+        while(src_node->edges){    // run on all the edges
+            int weight= src_node->edges->weight;    // taking the weight
+            if(!contain(src_node->edges->endpoint->node_num,visit)){  // checking if i visit or nor in this node
+                int old_cost= src_node->edges->endpoint->node_weight;    //calculating the new and old cost
                 int new_cost= src_node->node_weight+ weight;
                 if(new_cost<old_cost) {
-                    if (pq == NULL) {
-                        pq = push(pq, src_node->edges->endpoint->node_num);
-                        pq->node_weight=new_cost;
-                        src_node->edges->endpoint->node_weight = new_cost;
-                    } else {
-                        pnode tt;
-                        tt = push(pq, src_node->edges->endpoint->node_num);
-                        tt->edges= src_node->edges;
-                        pq->next = tt;
-                        pq->next->node_weight=new_cost;
-                        pq=change_place(pq);
-                        src_node->edges->endpoint->node_weight = new_cost;
+                        if(pq ==NULL) {  // in situation the queue is null,  putting the first
+                           pq= push_if_null(pq, src_node->edges->endpoint->node_num, new_cost);
+                            helper = find_node(src_node->edges->endpoint->node_num, head);
+                            helper->node_weight = new_cost; // updating the new weight in the original graph
+                        } else{
+                            pq=push(pq, src_node->edges->endpoint->node_num, new_cost); // if there are more than 2 nodes in the
+                            helper = find_node(src_node->edges->endpoint->node_num, head);      // queue we put the smallest weight first
+                            helper->node_weight = new_cost;
+                        }
                     }
-                }
+
                 } else{
-                if(src_node->edges->endpoint->node_weight > src_node->node_weight+weight){
-                    src_node->edges->endpoint->node_weight = src_node->node_weight +weight;
+                if(src_node->edges->endpoint->node_weight > src_node->node_weight+weight){   // if the node already visit in and need to update again
+                    helper = find_node(src_node->edges->endpoint->edges->endpoint->node_num,head);
+                    helper->node_weight= src_node->node_weight + weight;
                 }
             }
-            src_node->edges=src_node->edges->next; //delete my edge need to fix
+           src_node->edges= src_node->edges->next; // going through all the edges
         }
-        src_node= find_node(pq->node_num,helper);
     }
     pnode temp2 = find_node(dest_id,head);
     path_weight = temp2->node_weight;
@@ -268,21 +270,35 @@ int peek(pnode *head){
     pnode temp=head;
     return (temp)->node_num;
 }
-pnode pop ( pnode head){
+pnode pop ( pnode head){  //deleting the first node in the queue
     pnode temp = head;
     (temp)= (temp)->next;
     head= temp;
     //free(temp);
     return head;
 }
-pnode push(pnode head, int data){
-    pnode change;
-    pnode temp = newNode(data);
-    head=temp;
+pnode push(pnode head, int data,int weight) { // function that pushes a new node by his weight, small weight will be first
+    if (head != NULL) {
+        pnode start = head;
+        pnode tmp = newNode(data);
+        tmp->node_weight=weight;
+        if (head->node_weight > weight) {
+            tmp->next = head;
+            head= tmp;
+            return head;
+        } else {
+            while (start->next != NULL && start->next->node_weight < weight) {
+                start = start->next;
+            }
+            tmp->next = start->next;
+            start->next = tmp;
+        }
+    }
     return head;
+
 }
 int isEmpty (pnode *head){
-    return (*head) == NULL;
+    return (head) == NULL;
 }
 int contain (int elem, int *arr){
     int ans=0;
@@ -312,6 +328,21 @@ pnode change_place(pnode head){
             temp= temp->next;
         }
     }
+    return head;
+}
+pnode copy( pnode node_to_cop){
+    pnode p = (pnode) malloc(sizeof(node));
+    p->edges= node_to_cop->edges;
+    p->next=NULL;
+    p->node_num =node_to_cop->node_num;
+    p->node_weight=node_to_cop->node_weight;
+    return p;
+}
+pnode push_if_null(pnode head, int data,int weight){
+    pnode change;
+    pnode temp = newNode(data);
+    temp->node_weight=weight;
+    head=temp;
     return head;
 }
 
