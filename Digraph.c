@@ -197,21 +197,23 @@ void  printGraph_cmd(pnode head){
         temp = temp->next;
     }
 }
-void shortsPath_cmd(pnode head){
-    int src_id;
-    int dest_id;
+void shortsPath_cmd(pnode head,int src_id,int dest_id){
+    int cities[How_Much_Nodes];
+    for (int i = 0; i < How_Much_Nodes; ++i) {
+        cities[i]=-1;
+    }
+    int index =1;
+    cities[0]=src_id;
+    cities[How_Much_Nodes-1]=dest_id;
     int path_weight;
     pnode helper= head;
     pnode temp =head;
     pnode pq;
     int i =0;
-    int there_is_path;
     int visit[How_Much_Nodes];
     for (int j = 0; j < How_Much_Nodes; ++j) {    //initialize an array to -1 , it will help me to se if I visit node
         visit[j]=-1;
     }
-    scanf("%d",&src_id);
-    scanf("%d",&dest_id);
     while(temp){   // updating all node "weights" to inf
         temp->node_weight=INT_MAX;
         temp = temp->next;
@@ -228,7 +230,7 @@ void shortsPath_cmd(pnode head){
             src_node = copy(helper);            // copy again
         }
         if(peek(pq)== dest_id){      // condition to stop if i reach the dest node
-            there_is_path=1;
+            visit[i]=pq->node_num;
             break;
         }
         int nodeId= peek(pq);   // always add the first node we pop from the queue to the visit array
@@ -242,13 +244,15 @@ void shortsPath_cmd(pnode head){
                 int new_cost= src_node->node_weight+ weight;
                 if(new_cost<old_cost) {
                         if(pq ==NULL) {  // in situation the queue is null,  putting the first
-                           pq= push_if_null(pq, src_node->edges->endpoint->node_num, new_cost);
+                            pq= push_if_null(pq, src_node->edges->endpoint->node_num, new_cost);
                             helper = find_node(src_node->edges->endpoint->node_num, head);
+                            helper->prev= src_node->node_num;
                             helper->node_weight = new_cost; // updating the new weight in the original graph
                         } else{
                             pq=push(pq, src_node->edges->endpoint->node_num, new_cost); // if there are more than 2 nodes in the
                             helper = find_node(src_node->edges->endpoint->node_num, head);      // queue we put the smallest weight first
                             helper->node_weight = new_cost;
+                            helper->prev=src_node->node_num;
                         }
                     }
 
@@ -256,13 +260,23 @@ void shortsPath_cmd(pnode head){
                 if(src_node->edges->endpoint->node_weight > src_node->node_weight+weight){   // if the node already visit in and need to update again
                     helper = find_node(src_node->edges->endpoint->edges->endpoint->node_num,head);
                     helper->node_weight= src_node->node_weight + weight;
+                    helper->prev=src_node->node_num;
                 }
             }
            src_node->edges= src_node->edges->next; // going through all the edges
         }
     }
+
     pnode temp2 = find_node(dest_id,head);
     path_weight = temp2->node_weight;
+    pnode des = find_node(dest_id,head);
+    printf("%d<-",dest_id);
+    while (des->prev != src_id){
+        printf("%d <-",des->prev);
+        des= find_node(des->prev,head);
+    }
+    printf("%d",des->prev);
+    printf("\n");
     printf("this is the path weight: %d\n", path_weight);
 
 }
@@ -312,24 +326,6 @@ int contain (int elem, int *arr){
     }
     return ans;
 }
-pnode change_place(pnode head){
-    pnode temp =head;
-    pnode change;
-    while (temp){
-        if(head->node_weight > head->next->node_weight){
-              change = newNode(head->node_num);
-              change->edges= head->edges;
-              change->node_weight = head->node_weight;
-              change->next=head->next->next;
-              head=head->next;
-              head->next=change;
-              temp=temp->next;
-        } else{
-            temp= temp->next;
-        }
-    }
-    return head;
-}
 pnode copy( pnode node_to_cop){
     pnode p = (pnode) malloc(sizeof(node));
     p->edges= node_to_cop->edges;
@@ -339,10 +335,23 @@ pnode copy( pnode node_to_cop){
     return p;
 }
 pnode push_if_null(pnode head, int data,int weight){
-    pnode change;
     pnode temp = newNode(data);
     temp->node_weight=weight;
     head=temp;
     return head;
+}
+void TSP_cmd(pnode head,int cities [],int size){
+    int weight[size*2];
+    for (int j = 0; j < size ; ++j) {
+        for (int k = 0; k < size; ++k) {
+            if(j != k){
+                shortsPath_cmd(head,cities[j],cities[k]);
+                // weight dest node && list of prevs -> run on the prev, to see that the cities in this path, if they are, to save in new list,
+                // with **the same index**, run on all the weights, return the min/// we need also to merge between two paths if:
+                //
+
+            }
+        }
+    }
 }
 
