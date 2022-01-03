@@ -11,6 +11,7 @@ typedef struct edge_ {
 
 
 typedef struct GRAPH_NODE_ {
+    int prev;
     int node_num;
     int node_weight;
     pedge edges;
@@ -18,15 +19,16 @@ typedef struct GRAPH_NODE_ {
 } node, *pnode;
 
 char build_graph_cmd(pnode *head); // case A
-void insert_node_cmd(pnode *head,int data); // case B
-void delete_node_cmd(pnode *head);
+void insert_node_cmd(pnode head,int data); // case B
+void delete_node_cmd(pnode head);
 void printGraph_cmd(pnode head); //for self debug
-void deleteGraph_cmd(pnode* head);
-void shortsPath_cmd(pnode head);
-void TSP_cmd(pnode head);
+void deleteGraph_cmd(pnode head);
+int shortsPath_cmd(pnode head,int src, int dest);
+int TSP_cmd(pnode head,int[],int size);
 pnode find_node(int data,  pnode head);
 int is_Number(char *string);
 int turn_To_Num(char *string);
 void insert_Edge(int w, pnode src, pnode dest);
+void sp_cmd(pnode head);
 
 #endif

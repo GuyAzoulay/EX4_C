@@ -6,14 +6,8 @@
 int main() {
 
     pnode list_head;
-    int i = 0;
-    int b;
+    int i = 0, b, temp1, src, dest, shortest, tspp;
     char choose;
-    int temp1;
-    int src;
-    int dest;
-    int shortest;
-    int tspp;
     bool a= true;
     scanf("%s", &choose);
     while (choose != '\n' ) {
@@ -60,11 +54,8 @@ int main() {
                 break;
 
             case 'S':
-                scanf("%d", &src);
-                scanf("%d", &dest);
-                shortest= shortsPath_cmd(list_head, src, dest);
-                printf("Dijsktra shortest path: %d\n", shortest);
-                scanf("%s",&choose);
+                sp_cmd(list_head);
+                scanf("%c",&choose);
                 break;
             case 'T':
                 scanf("%d", &i);

@@ -205,6 +205,13 @@ void  printGraph_cmd(pnode head){
         temp = temp->next;
     }
 }
+void sp_cmd(pnode head){
+    int src,dest;
+    scanf("%d", &src);
+    scanf("%d", &dest);
+    int shortest = shortsPath_cmd(head,src,dest);
+    printf("Dijsktra shortest path: %d\n", shortest);
+}
 int shortsPath_cmd(pnode head,int src_id,int dest_id){
     int path_weight=-1;
     pnode helper= head;
