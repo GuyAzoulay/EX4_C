@@ -23,8 +23,9 @@ pnode push(pnode head, int data, int w);
 int peek(pnode head);
 int contain (int elem, const int arr []);
 static int How_Much_Nodes;
+void deleteOutEdges(pnode *head, pnode node);
 
-int pow1( int x, unsigned int y){
+        int pow1( int x, unsigned int y){
     if(y==0) return 1;
     else if (y%2 == 0) return pow1(x,y/2)*pow1(x,y/2);
     else return  x*pow1(x,y%2)* pow1(x,y/2);
@@ -144,38 +145,35 @@ void insert_node_cmd(pnode head,int data){
     }
     something->next = newNode(data);
 }
-void delete_node_cmd(pnode head){
+void delete_node_cmd(pnode *head){
     int node_to_del;
     scanf("%d",&node_to_del);
-    pnode node_to_del2 = find_node(node_to_del,head);
-    pnode start=head;
+    pnode node_to_del2 = find_node(node_to_del,*head);
+    pnode start=*head;
     pnode temp =head;
     int first = 0;
     if(start->node_num == node_to_del){
-        start->edges->weight = 0;
-        start->edges->endpoint = NULL;
-        start->edges =NULL;
-        first = 1;
-        temp->node_num = temp->next->node_num;
-        temp->edges = temp->next->edges;
-        temp->next = temp->next->next;
-        head = temp;
+        del_in_Edges( *head,start);
+        deleteOutEdges(head,start);
+        *head = start->next;
+        free(start);
     }
     else {
-        while (start->next->node_num != node_to_del) {
+        del_in_Edges( *head,node_to_del2);
+        deleteOutEdges(head,node_to_del2);
+
+        while(start->next!=node_to_del2){
             start = start->next;
         }
-        while (start->next->edges->next !=NULL && start->next->edges->endpoint !=NULL) {
-            start->next->edges->weight = 0;
-            start->next->edges->endpoint = NULL;
-            start->next->edges = start->edges->next;
+        if(node_to_del2->next!=NULL) {
+            start->next = node_to_del2->next;
+        }else{
+            start->next =NULL;
         }
-        start->next=start->next->next;
-
+        free(node_to_del2);
     }
-    del_in_Edges( head,node_to_del2);
-   // free(start);
-    free(temp);
+
+
 }
 
 void  printGraph_cmd(pnode head){
@@ -363,23 +361,40 @@ int TSP_cmd(pnode head) {
    // int ans= findmin(pathweight,size * size - size);
     return ans;
 }
-void deleteGraph_cmd(pnode head){
-    pnode curr =head;
-    pnode prev =head;
-    while(curr){
-        pedge curr_e =prev->edges;
-        pedge prev_e = prev->edges;
-        while (curr_e){
-            prev_e=curr_e;
-            curr_e=curr_e->next;
-            free(prev_e);
-        }
-        prev=curr;
-        curr=curr->next;
-        free(prev);
+void deleteGraph_cmd(pnode *head){
+    pnode curr = *head;
+    while (curr->next != NULL) {
+        pnode run = curr->next;
+
+        deleteOutEdges(head, curr);
+        pnode *temp = head;
+        pnode temp2 = *head;
+        *temp = temp2->next;
+        temp2->next = NULL;
+        free(temp2);
+        curr = run;
     }
+    deleteOutEdges(head, curr);
+    free(curr);
 }
 
+void deleteOutEdges(pnode *head, pnode node) {
+    pnode run = *head;
+    //get
+
+    while (run != node) { run = run->next; }
+    if (run->edges == NULL) return;
+    pedge prev, curr = run->edges;
+    if (curr->next != NULL) {
+        while (curr->next != NULL) {
+            prev = curr;
+            curr = curr->next;
+            free(prev);
+        }
+    }
+    free(curr);
+    run->edges = NULL;
+}
 
 
 

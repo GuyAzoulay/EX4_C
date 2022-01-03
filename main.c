@@ -6,77 +6,68 @@
 int main() {
 
     pnode list_head;
-    int i = 0, b, temp1, src, dest, shortest, tspp;
+    pnode *head = &list_head;
+    int b, temp1,tspp;
     char choose;
     bool a= true;
-    scanf("%s", &choose);
-    while (choose != '\n' ) {
-        switch (choose) {
-            case 'A':
-                if(a==false){
-                    deleteGraph_cmd(list_head);
-                }
-                list_head = (pnode) malloc(sizeof(node)); // dont forget to check if null
-                list_head->node_num = 0;
-                list_head->next = NULL;
-                list_head->edges = NULL;
-                pnode *temp = (pnode*) &list_head;
-                choose = build_graph_cmd(temp);
-                list_head = *temp;
-                a=false;
-                break;
+//    scanf("%s", &choose);
+    while (scanf("%c", &choose)){
+        if(choose == '\n') break;
+        if(choose == 'A') {
+            if (a == false) {
+                deleteGraph_cmd(head);
+            }
+            list_head = (pnode) malloc(sizeof(node)); // dont forget to check if null
+            list_head->node_num = 0;
+            list_head->next = NULL;
+            list_head->edges = NULL;
+            pnode *temp = &list_head;
+            choose = build_graph_cmd(head);
+            list_head = *temp;
+            a = false;
+        }
 
-            case 'B':
-                while (scanf("%d", &temp1)) {
-                    b = temp1;
-                    if (find_node(b, list_head) == NULL) { //if it doesn't exist
-                        insert_node_cmd(list_head, b);
-                        pnode src2= find_node(b,list_head);
-                        while (scanf("%d", &b)) {
-                            pnode dest2 = find_node(b, list_head);
-                            scanf("%d", &b);
-                            int weight = b;
-                            insert_Edge(weight, src2, dest2);
-                        }
-                    } else {
-                        pnode src1 = find_node(b, list_head);
-                        while (src1->edges) {
-                            src1->edges->weight = 0;
-                            src1->edges->endpoint = NULL;
-                            src1->edges = src1->edges->next;
-                        }
-                        while (scanf("%d", &b)) {
-                            pnode dest2 = find_node(b, list_head);
-                            scanf("%d", &b);
-                            int weight = b;
-                            insert_Edge(weight, src1, dest2);
-                        }
-                        }
+        if(choose == 'B') {
+            while (scanf("%d", &temp1)) {
+                b = temp1;
+                if (find_node(b, list_head) == NULL) { //if it doesn't exist
+                    insert_node_cmd(list_head, b);
+                    pnode src2 = find_node(b, list_head);
+                    while (scanf("%d", &b)) {
+                        pnode dest2 = find_node(b, list_head);
+                        scanf("%d", &b);
+                        int weight = b;
+                        insert_Edge(weight, src2, dest2);
                     }
-                scanf("%c", &choose);
-                break;
-            case 'D':
-                delete_node_cmd(list_head);
-                scanf("%c", &choose);
-                printGraph_cmd(list_head);
-                break;
+                } else {
+                    pnode src1 = find_node(b, list_head);
+                    deleteOutEdges(head, src1);
+                    while (scanf("%d", &b)) {
+                        pnode dest2 = find_node(b, list_head);
+                        scanf("%d", &b);
+                        int weight = b;
+                        insert_Edge(weight, src1, dest2);
+                    }
+                }
 
-            case 'S':
-                sp_cmd(list_head);
-                scanf("%c",&choose);
-                break;
-            case 'T':
-               printGraph_cmd(list_head);
+            }
 
-                tspp = TSP_cmd(list_head);
-                printf("TSP shortest path: %d \n",tspp);
-                scanf("%s",&choose);
-                break;
+        }
+        if(choose == 'D') {
+            delete_node_cmd(head);
+        }
+
+        if(choose == 'S') {
+            sp_cmd(list_head);
+        }
+        if(choose == 'T') {
+            tspp = TSP_cmd(list_head);
+            printf("TSP shortest path: %d \n", tspp);
 
         }
 
-    }
-    deleteGraph_cmd(list_head);
+        }
+    deleteGraph_cmd(head);
     return 0;
 }
 
