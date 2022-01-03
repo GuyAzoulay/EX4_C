@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 // this is the node struct
+void del_in_Edges(pnode head, pnode node);
 int pow1( int x, unsigned int y);
 int findmin(int arr[],int arraysize);
 void prevAndweight (pnode head);
@@ -96,7 +97,8 @@ pnode find_node(int data,  pnode head){
     return NULL;
 }
 void insert_Edge(int w, pnode src, pnode dest){
-    edge *temp = src->edges;
+    pedge temp =(edge*) malloc(sizeof(edge));
+    temp=src->edges;
     if (temp == NULL){
         edge *e =(edge*) malloc(sizeof(edge));
         e->next=NULL;
@@ -145,6 +147,7 @@ void insert_node_cmd(pnode head,int data){
 void delete_node_cmd(pnode head){
     int node_to_del;
     scanf("%d",&node_to_del);
+    pnode node_to_del2 = find_node(node_to_del,head);
     pnode start=head;
     pnode temp =head;
     int first = 0;
@@ -162,33 +165,16 @@ void delete_node_cmd(pnode head){
         while (start->next->node_num != node_to_del) {
             start = start->next;
         }
-        while (start->edges) {
-            start->edges->weight = 0;
-            start->edges->endpoint = NULL;
-            start->edges = start->edges->next;
+        while (start->next->edges->next !=NULL && start->next->edges->endpoint !=NULL) {
+            start->next->edges->weight = 0;
+            start->next->edges->endpoint = NULL;
+            start->next->edges = start->edges->next;
         }
+        start->next=start->next->next;
+
     }
-    while (temp != NULL) {
-        if (temp->edges != NULL && temp->edges->endpoint != NULL && temp->edges->endpoint->node_num == node_to_del) {
-            temp->edges = temp->edges->next;
-        } else {
-            while (temp->edges) {
-                if (temp->edges->next != NULL && temp->edges != NULL && temp->next->edges->endpoint != NULL &&
-                    temp->next->edges->endpoint->node_num == node_to_del) {
-                    temp->next->edges->weight =0;
-                    temp->next->edges->endpoint = NULL;
-                    temp = temp->next->next;
-                    break;
-                }
-                temp->edges = temp->edges->next;
-            }
-            temp = temp->next;
-        }
-    }
-    if(first == 0) {
-        start->next = start->next->next;
-    }
-    free(start);
+    del_in_Edges( head,node_to_del2);
+   // free(start);
     free(temp);
 }
 
@@ -196,9 +182,9 @@ void  printGraph_cmd(pnode head){
     pnode temp = head;
     while (temp){
         printf("Node : %d" , temp->node_num);
-        edge *e = temp->edges;
+        pedge e = temp->edges;
         while (e){
-            printf(" - >%d " , e->endpoint->node_num);
+            printf(" - >(D :%d ,W :%d)" , e->endpoint->node_num,e->weight);
             e = e->next;
         }
         printf("\n");
@@ -251,7 +237,7 @@ int shortsPath_cmd(pnode head,int src_id,int dest_id){
                 if (!contain(src_node->edges->endpoint->node_num, visit)) {  // checking if i visit or nor in this node
                     int old_cost = src_node->edges->endpoint->node_weight;    //calculating the new and old cost
                     int new_cost = src_node->node_weight + weight;
-                    if (new_cost < old_cost) {
+                    if (new_cost <= old_cost) {
                         if (pq == NULL) {  // in situation the queue is null,  putting the first
                             pq = push_if_null(pq, src_node->edges->endpoint->node_num, new_cost);
                             helper = find_node(src_node->edges->endpoint->node_num, head);
@@ -303,56 +289,78 @@ int peek(pnode head){
     pnode temp=head;
     return (temp)->node_num;
 }
-int TSP_cmd(pnode head,int cities[],int size) {
-    bool b = true;
-    int pathweight[size * size - size];
-    for (int i = 0; i < size * size - size; ++i) {
-        pathweight[i] = INT_MAX;
+int TSP_cmd(pnode head) {
+    int i=0;
+    scanf("%d", &i);
+    int size = i;
+    int tsp[i];
+    int dest=0;
+    int ans=-1;
+    i=0;
+    while (i<size) {
+        if (scanf("%d", &dest) == 1) {
+            tsp[i] = dest;
+            i++;
+        } else
+            break;
     }
+    bool b = true;
+//    int pathweight[size * size - size];
+//    for (int i = 0; i < size * size - size; ++i) {
+//        pathweight[i] = INT_MAX;
+//    }
     int index = 0;
-    int while_index = 0;
-    int contains[size + 1];
-    prevAndweight(head);
+
+    int contains[size];
     // --------this part check if all the numbers in the path are in the cities--------------//
     for (int j = 0; j < size; ++j) {
         for (int k = 0; k < size; ++k) {
             if (j != k) {
-                if (find_node(cities[j], head)->edges != NULL) {
-                    for (int i = 0; i < size+1 ; ++i) {
+
+                if (find_node(tsp[j], head)->edges != NULL) {
+                    for (int i = 0; i < size ; ++i) {
                         contains[i] = 0;
                     }
-                   int x= shortsPath_cmd(head, cities[j], cities[k]);
-                    pnode check = find_node(cities[k], head);
-                    while (check && while_index <= size + 1) {
-                        if (contain(check->node_num, cities)) {
-                            contains[check->node_num] = 1;
-                            check = find_node(check->prev, head);
-                            while_index++;
-                        } else {
-                            check = find_node(check->prev, head);
-                            while_index++;
+                    int while_index = 0;
+                    prevAndweight(head);
+                   int x= shortsPath_cmd(head, tsp[j], tsp[k]);
+                    pnode check = find_node(tsp[k], head);
+                    while (check && while_index < size)  {
+                        for (int l = 0; l <size; ++l) {
+                            if(check->node_num == tsp[l]) contains[while_index++] = 1;
                         }
+                        check = find_node(check->prev,head);
+
+
+//                        if (contain(check->node_num, tsp)) {
+//                            contains[while_index++] = 1;
+//                            check = find_node(check->prev, head);
+//                        } else {
+//                            check = find_node(check->prev, head);
+//                        }
                     }
-                    while_index = 0;
-                    for (int i = 0; i < size; ++i) {
-                        if (contains[cities[i]] != 1) {
-                            b = false;
+
+                    for (i = 0; i < size; i++) {
+                        if (contains[i] != 1) {
+                           b =  false;
                             break;
                         }
                     }
                     if (b) {
-                        pnode tmp = find_node(cities[k], head);
-                        pathweight[index] = tmp->node_weight;
-                        index++;
+                        if(x<=ans || ans == -1) {
+                            ans=x;
+                            //pnode tmp = find_node(tsp[k], head);
+                           // pathweight[index] = tmp->node_weight;
+                          //  index++;
+                        }
                     }
                     b = true;
-                    continue;
                 }
             }
         }
     }
 
-    int ans= findmin(pathweight,size * size - size);
+   // int ans= findmin(pathweight,size * size - size);
     return ans;
 }
 void deleteGraph_cmd(pnode head){
@@ -450,4 +458,45 @@ int contain (int elem, const int *arr){
 }
 int isEmpty (pnode head){
     return (head) == NULL;
+}
+void del_in_Edges(pnode head, pnode node) {
+    pnode run = head;
+    while (run != NULL) {
+        // if run is node -> continue
+        if (run == node) {
+            run = run->next;
+            continue;
+        }
+
+        // Run on all edges of "run" and check if there any dest edge equals to "node"
+        pedge prev, curr = run->edges;
+        // if the first edge dest point is "node" delete it and continue to next node edges
+        if (curr != NULL) {
+            if (curr->endpoint == node) {
+                run->edges = curr->next;
+                free(curr);
+                run = run->next;
+                continue;
+            }
+        }
+        // if edge with endpoint equal to "node" is in middle or in the end;
+        while (curr != NULL) {
+            prev = curr;
+            curr = curr->next;
+            if (curr->endpoint == node) {
+                if (curr->next != NULL) {
+                    prev->next = curr->next->next;
+                    free(curr);
+                    break;
+                } else {
+                    prev->next = NULL;
+                    free(curr);
+                    break;
+                }
+
+            }
+            curr = curr->next;
+        }
+        run = run->next;
+    }
 }
